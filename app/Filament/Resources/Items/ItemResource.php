@@ -166,7 +166,8 @@ class ItemResource extends Resource
                                     ->modalDescription('Yakin ingin menarik/retur batch ini? Data akan dihapus.')
                             )
                         // ->createItemButtonLabel('Tambah Batch Baru'),
-                    ]),
+                    ])
+                    ->after(fn() => broadcast(new \App\Events\BatchUpdated())),
                 DeleteAction::make()
                     ->hiddenLabel()->before(function ($record, $action) {
                         // Cek apakah barang ini memiliki relasi batch

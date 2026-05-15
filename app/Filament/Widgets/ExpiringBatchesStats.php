@@ -10,7 +10,9 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class ExpiringBatchesStats extends BaseWidget
 {
     // protected static ?int $sort = 1; // Memastikan widget ini muncul paling atas di Dashboard
-    protected ?string $pollingInterval = '1';
+    protected $listeners = [
+        'echo:batch-channel,.batch.updated' => '$refresh',
+    ];
     protected function getStats(): array
     {
 

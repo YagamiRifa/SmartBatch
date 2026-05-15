@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 class ExpiringBatchesTable extends TableWidget
 {
     protected int | string | array $columnSpan = 'full';
+    protected $listeners = [
+        'echo:batch-channel,.batch.updated' => '$refresh',
+    ];
     public function table(Table $table): Table
     {
         return $table

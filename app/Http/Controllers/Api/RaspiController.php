@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Item;
 use App\Models\Batch;
 use Carbon\Carbon;
+use App\Events\BatchUpdated;
 
 class RaspiController extends Controller
 {
@@ -50,6 +51,8 @@ class RaspiController extends Controller
             ]
             // batch_number akan di-generate otomatis oleh model
         );
+        // Tembakkan sinyal ke WebSocket Reverb!
+        broadcast(new BatchUpdated());
 
         return response()->json([
             'message' => 'Data batch berhasil disimpan.',

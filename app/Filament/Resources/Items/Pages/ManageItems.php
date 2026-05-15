@@ -10,7 +10,9 @@ use Filament\Resources\Pages\ManageRecords;
 class ManageItems extends ManageRecords
 {
     protected static string $resource = ItemResource::class;
-
+    protected $listeners = [
+        'echo:batch-channel,.batch.updated' => '$refresh',
+    ];
     protected function getHeaderActions(): array
     {
         return [
