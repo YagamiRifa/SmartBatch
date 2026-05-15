@@ -36,7 +36,8 @@ class CheckDailyExpiry extends Command
                     ->title('Barang Telah Kedaluwarsa! 🚨')
                     ->body("Terdapat {$expiredBatches->count()} batch renteng/dus yang SUDAH kedaluwarsa. Segera tarik dari rak!")
                     ->danger() // Warna notifikasi merah
-                    ->sendToDatabase($admin);
+                    ->sendToDatabase($admin)
+                    ->broadcast($admin);
             }
             // Munculkan teks merah di terminal
             $this->error("Notifikasi {$expiredBatches->count()} barang EXPIRED terkirim.");
@@ -50,7 +51,8 @@ class CheckDailyExpiry extends Command
                     ->title('Peringatan Hampir Kedaluwarsa ⚠️')
                     ->body("Terdapat {$warningBatches->count()} batch barang yang akan kedaluwarsa dalam 7 hari ke depan.")
                     ->warning() // Warna notifikasi oranye/kuning
-                    ->sendToDatabase($admin);
+                    ->sendToDatabase($admin)
+                    ->broadcast($admin);
             }
             // Munculkan teks kuning di terminal
             $this->warn("Notifikasi {$warningBatches->count()} barang WARNING terkirim.");
@@ -79,7 +81,8 @@ class CheckDailyExpiry extends Command
     //                     ->title('Peringatan Kedaluwarsa!')
     //                     ->body("Ada {$expiredBatches->count()} batch barang kedaluwarsa.")
     //                     ->danger()
-    //                     ->sendToDatabase($admin);
+    //                     ->sendToDatabase($admin)
+    //                     ->broadcast($admin);
     //             }
     //             $this->info('STATUS: Sukses masuk ke tabel notifications!');
     //         } else {

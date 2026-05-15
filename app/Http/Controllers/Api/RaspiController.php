@@ -56,14 +56,21 @@ class RaspiController extends Controller
         // Tembakkan sinyal ke WebSocket Reverb!
         broadcast(new BatchUpdated());
 
-        $admins = User::all();
-        foreach ($admins as $admin) {
-            Notification::make()
-                ->title('Scan Berhasil! 📦')
-                ->body("Item {$item->nama_barang} ({$item->satuan}) dengan Exp. {$request->expiry_date} berhasil ditambahkan.")
-                ->success() // Warna hijau
-                ->sendToDatabase($admin) // Masuk ke tabel database
-                ->broadcast($admin);     // Munculkan pop-up real-time di layar
+        if ($batch->status === 'SAFE') {
+            // Jika aman (tanggal masih panjang), munculkan notif hijau biasa
+            $admins = User::all();
+            foreach ($admins as $admin) {
+                Notification::make()
+                    ->title('Scan Berhasil! 📦')
+                    ->body("Item {$item->nama_barang} (Aman) berhasil masuk database.")
+                    ->success()
+                    ->sendToDatabase($admin)
+                    ->broadcast($admin);
+            }
+        } else {
+            // JIKA WARNING ATAU EXPIRED:
+            // Panggil fungsi canggih di Model Batch yang memunculkan tombol "Lihat Barang"!
+            $batch->sendExpiryNotification(true);
         }
 
         return response()->json([
