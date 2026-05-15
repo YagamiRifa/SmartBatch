@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Item;
-use App\Models\Batch;
-use Carbon\Carbon;
 use App\Events\BatchUpdated;
+use App\Http\Controllers\Controller;
+use App\Models\Batch;
+use App\Models\Item;
+use App\Models\User;
+use Carbon\Carbon;
+use Filament\Notifications\Notification;
+use Illuminate\Http\Request;
 
 class RaspiController extends Controller
 {
@@ -53,6 +55,16 @@ class RaspiController extends Controller
         );
         // Tembakkan sinyal ke WebSocket Reverb!
         broadcast(new BatchUpdated());
+
+        $admins = User::all();
+        foreach ($admins as $admin) {
+            Notification::make()
+                ->title('Scan Berhasil! 📦')
+                ->body("Item {$item->nama_barang} ({$item->satuan}) dengan Exp. {$request->expiry_date} berhasil ditambahkan.")
+                ->success() // Warna hijau
+                ->sendToDatabase($admin) // Masuk ke tabel database
+                ->broadcast($admin);     // Munculkan pop-up real-time di layar
+        }
 
         return response()->json([
             'message' => 'Data batch berhasil disimpan.',

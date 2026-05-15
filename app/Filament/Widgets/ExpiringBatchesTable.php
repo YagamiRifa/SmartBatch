@@ -20,7 +20,6 @@ class ExpiringBatchesTable extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->poll(1) // Refresh data setiap 1 detik untuk update jumlah batch secara real-time
             ->query(fn(): Builder => Batch::query()
                 ->whereDate('expiry_date', '<=', now()->addDays(7)->endOfDay())
                 ->orderBy('expiry_date', 'asc'))
@@ -30,6 +29,9 @@ class ExpiringBatchesTable extends TableWidget
                 TextColumn::make('batch_number')
                     ->label('Nomor Batch')
                     ->searchable(),
+                TextColumn::make('item.kode_barang')
+                    ->label('Kode Barang')
+                    ->searchable(),
                 TextColumn::make('item.nama_barang')
                     ->label('Nama Barang')
                     ->searchable(),
@@ -37,7 +39,7 @@ class ExpiringBatchesTable extends TableWidget
                     ->label('Satuan')
                     ->badge(),
                 TextColumn::make('expiry_date')
-                    ->date()
+                    ->date('d M Y')
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()

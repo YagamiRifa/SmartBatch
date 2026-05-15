@@ -2,14 +2,14 @@
 
 namespace App\Filament\Resources\Items;
 
+use App\Events\BatchUpdated;
 use App\Filament\Resources\Items\Pages\ManageItems;
 use App\Models\Item;
 use BackedEnum;
 use Carbon\Carbon;
+use Closure;
 use Filament\Actions\Action;
-// use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
-// use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
@@ -23,6 +23,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 
 class ItemResource extends Resource
@@ -54,7 +55,6 @@ class ItemResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->poll(1) // Refresh data setiap 1 detik untuk update jumlah batch secara real-time
             ->recordTitleAttribute('nama_barang')
             ->columns([
                 TextColumn::make('kode_barang')
@@ -67,9 +67,7 @@ class ItemResource extends Resource
                     ->badge(),
                 TextColumn::make('batches_count')
                     ->counts('batches')
-                    ->label('Total Batch')
-                    ->badge()
-                    ->color('secondary'),
+                    ->label('Total Batch'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -121,8 +119,8 @@ class ItemResource extends Resource
 
                                     // 2. Pengecekan ketat langsung ke tabel database
                                     ->rules([
-                                        function ($livewire, ?\Illuminate\Database\Eloquent\Model $record) {
-                                            return function (string $attribute, $value, \Closure $fail) use ($livewire, $record) {
+                                        function ($livewire, ?Model $record) {
+                                            return function (string $attribute, $value, Closure $fail) use ($livewire, $record) {
                                                 // Ambil ID Barang (Item) yang sedang dikelola
                                                 $itemId = $livewire->getMountedTableActionRecord()->id;
 
@@ -166,8 +164,16 @@ class ItemResource extends Resource
                                     ->modalDescription('Yakin ingin menarik/retur batch ini? Data akan dihapus.')
                             )
                         // ->createItemButtonLabel('Tambah Batch Baru'),
-                    ])
-                    ->after(fn() => broadcast(new \App\Events\BatchUpdated())),
+                    ])->after(function ($record) {
+                        // Ambil batch terakhir yang baru ditambahkan/diedit
+                        $latestBatch = $record->batches()->latest()->first();
+                        if ($latestBatch) {
+                            $latestBatch->sendExpiryNotification();
+                        }
+                        // Tembakkan Reverb (jika pakai)
+                        broadcast(new BatchUpdated());
+                    }),
+
                 DeleteAction::make()
                     ->hiddenLabel()->before(function ($record, $action) {
                         // Cek apakah barang ini memiliki relasi batch

@@ -10,6 +10,6 @@ class Item extends Model
 
     public function batches()
     {
-        return $this->hasMany(Batch::class);
+        return $this->hasMany(Batch::class)->orderBy('expiry_date', 'asc');;
     }
 }
